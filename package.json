@@ -1,36 +1,36 @@
 {
-  "name": "hubot-happy-birthder",
-  "description": "Hubot script for writing birthday messages to users",
-  "version": "1.0.0",
-  "author": "6r1d",
-  "license": "Apache-2.0",
-  "keywords": [
-      "hubot",
-      "hubot-scripts"
-  ],
-  "repository": {
-      "type": "git",
-      "url": "git://github.com/tolstoyevsky/hubot-happy-birthder.git"
-  },
-  "bugs": {
-      "url": "https://github.com/tolstoyevsky/hubot-happy-birthder/issues"
-  },
-  "dependencies": {
-      "moment": "^2.22.2",
-      "node-schedule": "git+https://github.com/node-schedule/node-schedule.git",
-      "hubot-routines": "https://github.com/tolstoyevsky/hubot-routines.git"
-  },
-  "devDependencies": {
-    "eslint": "^5.5.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-promise": "^4.0.0",
-    "eslint-plugin-standard": "^4.0.0"
-  },
-  "scripts": {
-    "lint": "eslint . --ext .js",
-    "pretest": "npm run lint",
-    "test": "echo \"No tests\""
-  }
+    "name": "hubot-happy-birthder",
+    "description": "Hubot script for writing birthday messages to users",
+    "version": "1.0.0",
+    "author": "6r1d",
+    "license": "Apache-2.0",
+    "keywords": [
+        "hubot",
+        "hubot-scripts"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/tolstoyevsky/hubot-happy-birthder.git"
+    },
+    "bugs": {
+        "url": "https://github.com/tolstoyevsky/hubot-happy-birthder/issues"
+    },
+    "dependencies": {
+        "hubot-routines": "git+https://github.com/tolstoyevsky/hubot-routines.git",
+        "moment": "^2.22.2",
+        "node-schedule": "git+https://github.com/node-schedule/node-schedule.git"
+    },
+    "devDependencies": {
+        "eslint": "^5.5.0",
+        "eslint-config-standard": "^12.0.0",
+        "eslint-plugin-import": "^2.14.0",
+        "eslint-plugin-node": "^7.0.1",
+        "eslint-plugin-promise": "^4.0.0",
+        "eslint-plugin-standard": "^4.0.0"
+    },
+    "scripts": {
+        "lint": "eslint . --ext .js",
+        "pretest": "npm run lint",
+        "test": "echo \"No tests\""
+    }
 }
