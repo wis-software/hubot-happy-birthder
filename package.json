@@ -17,7 +17,7 @@
   },
   "dependencies": {
       "moment": "^2.22.2",
-      "node-schedule": "^0.6.0",
+      "node-schedule": "git+https://github.com/node-schedule/node-schedule.git",
       "hubot-routines": "https://github.com/tolstoyevsky/hubot-routines.git"
   },
   "devDependencies": {
