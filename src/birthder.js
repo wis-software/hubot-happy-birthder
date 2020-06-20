@@ -52,12 +52,46 @@
     }
 
     robot.enter(msg => {
+      async function sendMessageWithAttempts (user, attempt) {
+        if (attempt >= 30) {
+          console.log(`Error! User @${user.name} is still unavailable after 30 attempts.`)
+          return
+        }
+
+        const dialogCreatingInfo = await robot.adapter.api.post(
+          'im.create',
+          {
+            username: user.name
+          }
+        )
+
+        if (!dialogCreatingInfo) {
+          console.log(`User @${user.name} is unavailable. Attempt number ${attempt}. Retrying...`)
+          setTimeout(
+            () => sendMessageWithAttempts(user, attempt+1),
+            5000
+          )
+          return
+        }
+
+        const chatID = dialogCreatingInfo.room._id
+        await robot.adapter.api.post(
+          'chat.postMessage',
+          {
+            roomId: chatID,
+            emoji: ':wave:',
+            text: `Welcome to ${utils.COMPANY_NAME}! :tada:\nEmm... where was I?\nOh! Please, enter your date birth (DD.MM.YYYY).`
+          }
+        )
+        console.log(`User @${user.name} is welcomed by bot.`)
+      }
+
       if (msg.message.user.roomID === 'GENERAL') {
         const brain = robot.brain.data.users
         const username = msg.message.user.name
         const user = Object.values(brain).filter(item => item.name === username).shift()
         if (!user.dateOfBirth) {
-          robot.adapter.sendDirect({ user: { name: user.name } }, `Welcome to ${utils.COMPANY_NAME}! :tada:\nEmm... where was I?\nOh! Please, enter your date birth (DD.MM.YYYY).`)
+          sendMessageWithAttempts(user, 0)
         }
         const today = moment().format(utils.OUTPUT_DATE_FORMAT)
         user.dateOfFwd = today
