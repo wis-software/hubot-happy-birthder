@@ -17,6 +17,7 @@ exp.BIRTHDAY_LOGGING_CHANNEL = process.env.BIRTHDAY_LOGGING_CHANNEL || 'hr'
 exp.COMPANY_NAME = process.env.COMPANY_NAME || 'WIS Software'
 exp.CREATE_BIRTHDAY_CHANNELS = process.env.CREATE_BIRTHDAY_CHANNELS === 'true' || false
 exp.HAPPY_REMINDER_SCHEDULER = process.env.HAPPY_REMINDER_SCHEDULER || '0 0 7 * * *'
+exp.HAPPY_REMINDER_SCHEDULER_MONTHLY = process.env.HAPPY_REMINDER_SCHEDULER_MONTHLY || '0 8 28 * *'
 exp.NUMBER_OF_DAYS_IN_ADVANCE = parseInt(process.env.NUMBER_OF_DAYS_IN_ADVANCE, 10) || 7
 exp.ENABLE_PITCHING_IN_SURVEY = process.env.ENABLE_PITCHING_IN_SURVEY === 'true' || false
 
@@ -29,11 +30,13 @@ exp.MSG_INVALID_DATE = 'Invalid date format. Try again.'
 // See https://momentjs.com/docs/#/parsing/string-format/ for details.
 exp.DATE_FORMAT = 'D.M.YYYY'
 exp.SHORT_DATE_FORMAT = 'D.M'
+exp.MONTH_FORMAT = 'MM'
 
 // Here are the OUTPUT format strings, they follow other rules;
 // See https://momentjs.com/docs/#/displaying/ for details.
 exp.OUTPUT_SHORT_DATE_FORMAT = 'DD.MM'
 exp.OUTPUT_DATE_FORMAT = 'DD.MM.YYYY'
+exp.OUTPUT_MONTH_FORMAT = 'MM'
 
 exp.BDAY_EVENT_TYPE = 'bday'
 exp.FWD_EVENT_TYPE = 'fwd'
@@ -283,6 +286,40 @@ exp.findUsersByDate = (event, date, users) => {
 }
 
 /**
+ * Check if two specified dates have the same month.
+ *
+ * @param {moment} firstDate - First date for comparison.
+ * @param {moment} secondsDate - Second date for comparison.
+ * @returns {boolean}
+ */
+exp.isEqualMonth = (firstDate, secondsDate) => {
+  return (firstDate.month() === secondsDate.month())
+}
+
+/**
+ * Find the users who have the event in the specified month.
+ *
+ * @param {String} event - Name of the event.
+ * @param {Date} date - Date which will be used for the comparison.
+ * @param {Object} users - User object where each key is the user instance.
+ * @returns {Array}
+ */
+exp.findUsersByMonth = (event, date, users) => {
+  let month_matches = []
+  let attr = 'dateOfBirth'
+
+  for (let user of Object.values(users)) {
+    if (routines.isValidDate(user[attr], exp.DATE_FORMAT)) {
+      if (exp.isEqualMonth(date, moment(user[attr], exp.DATE_FORMAT))) {
+        month_matches.push(user)
+      }
+    }
+  }
+
+  return month_matches
+}
+
+/**
  * Form a reminder message
  *
  * @param {Object} users - User object where each key is the user instance.
@@ -511,4 +548,15 @@ exp.sendReminderOfBegging = async (robot) => {
 
       robot.messageRoom(user.birthdayChannel.roomName, message)
     })
+}
+
+/**
+ * Send reminders of the upcoming birthdays to all users.
+ *
+ * @param {Object} robot - Hubot instance.
+ */
+exp.sendRemindersToEveryone = async (robot, message, users) => {
+  for (let user of users) {    
+    robot.adapter.sendDirect({ user: { name: user.name } }, message)
+  }
 }

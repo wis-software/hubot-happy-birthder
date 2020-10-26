@@ -35,12 +35,14 @@
     const regExpUsername = new RegExp(/(?:@?(.+))/)
     const regExpDate = new RegExp(/((\d{1,2})\.(\d{1,2})\.(\d{4}))\b/)
     const regExpShortDate = new RegExp(/((\d{1,2})\.(\d{1,2}))\b/)
+    const regExpMonth = new RegExp(/(\d{1,2})\b/)
 
     const routes = {
       set: new RegExp(/(birthday set)\s+/.source + regExpUsername.source + /\s+/.source + regExpDate.source, 'i'),
       delete: new RegExp(/(birthday delete)\s+/.source + regExpUsername.source + /\b/.source, 'i'),
       check: new RegExp(/(birthdays on)\s+/.source + regExpShortDate.source, 'i'),
       list: new RegExp(/(birthdays|fwd) list$/, 'i'),
+      check_month: new RegExp(/(check month)\s+/.source + regExpMonth.source, 'i'),
       fwd_set: new RegExp(/(fwd set)\s+/.source + regExpUsername.source + /\s+/.source + regExpDate.source, 'i'),
       agreeToPitchIn: new RegExp(/Yes, I'll pitch in on a present for\s+/.source + regExpUsername.source, 'i'),
       disagreeToPitchIn: new RegExp(/No, I won't pitch in on a present for\s+/.source + regExpUsername.source, 'i')
@@ -170,6 +172,31 @@
 
       if (users.length === 0) {
         return msg.send('Could not find any user with the specified birthday.')
+      }
+
+      userNames = users.map(user => `@${user.name}`)
+      message = `${userNames.join(', ')}`
+
+      return msg.send(message)
+    })
+
+    // Print the users names whose birthdays match the specified month.
+    robot.respond(routes.check_month, async (msg) => {
+      let month
+      let message
+      let users = []
+      let userNames
+
+      month = msg.match[2]
+
+      for (const u of utils.findUsersByMonth(utils.BDAY_EVENT_TYPE, moment(month, utils.MONTH_FORMAT), robot.brain.data.users)) {
+        if (await routines.isUserActive(robot, u)) {
+          users.push(u)
+        }
+      }
+
+      if (users.length === 0) {
+        return msg.send('Could not find any user with the birthday in specified month.')
       }
 
       userNames = users.map(user => `@${user.name}`)
@@ -374,6 +401,40 @@
     // Check regularly if today is someone's anniversary day, write congratulation message to the general channel.
     if (utils.HAPPY_REMINDER_SCHEDULER) {
       schedule.scheduleJob(utils.HAPPY_REMINDER_SCHEDULER, () => utils.sendCongratulations(robot, utils.FWD_EVENT_TYPE))
+    }
+    
+    // Check monthly if someone has birthday in next month.
+    if (utils.HAPPY_REMINDER_SCHEDULER_MONTHLY) {
+      schedule.scheduleJob(utils.HAPPY_REMINDER_SCHEDULER_MONTHLY, async () => {
+        let next_month = moment().add(1, 'M')
+        let message
+        const all_users = Object.values(robot.brain.data.users)
+        let users = []
+        let activ_users = []
+        let userNames
+        
+        for (const u of utils.findUsersByMonth(utils.BDAY_EVENT_TYPE, next_month, robot.brain.data.users)) {
+          if (await routines.isUserActive(robot, u)) {
+            users.push(u)
+          }
+        }
+
+        for (const u of all_users) {
+          if (routines.isUserActive(robot, u)) {
+            activ_users.push(u)
+          }
+        }
+  
+        if (users.length === 0) {
+          message = 'Could not find any user with the birthday in next month.'
+          return utils.sendRemindersToEveryone(robot, message, activ_users)
+        }
+  
+        userNames = users.map(user => `@${user.name} has birthday in next month`)
+        message = `${userNames.join('\n')}`
+  
+        return utils.sendRemindersToEveryone(robot, message, activ_users)    
+      })      
     }
 
     // test
